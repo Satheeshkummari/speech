@@ -1,0 +1,73 @@
+/* You can add global styles to this file, and also import other style files */
+button.timegrid {
+    border: 1px solid #0066cc;
+    background-color: #0099cc;
+    color: #ffffff;
+    //todo verify
+    // padding: 5px 10px;
+    margin: 2px;
+}
+
+button.timegrid {
+    font-size:12px;
+}
+
+@media (min-width: 576px) {
+    button.timegrid {
+        font-size:14px;
+    }
+}
+
+button.timegrid:hover {
+    border: 1px solid #0099cc;
+    background-color: #00aacc;
+    color: #ffffff;
+}
+
+button.timegrid.disabled {
+    border: 1px solid #999999;
+    background-color: #cccccc;
+    color: #666666;
+    outline: none;
+    user-select: none;
+}
+
+button.timegrid.selected {
+    border: 1px solid #258103;
+    background-color: #1f8c0c;
+    color: #ffffff;
+}
+
+.time-container {
+    max-width: 60%;
+    width: 300px;
+    // min-width: 200px;
+    min-width: 300px
+}
+
+.icon-time-container {
+    max-width: 100%;
+    width: 300px;
+    min-width: 200px;
+}
+
+.option-container {
+    max-height: 300px;
+    overflow: auto;
+}
+
+body {
+    // todo comment
+    // background: black;
+}
+
+.bg-light {
+    background-color: #2fa897!important;
+}
+
+//backup
+// "node_modules/bootstrap/dist/js/bootstrap.min.js"
+// "node_modules/jquery/dist/jquery.slim.min.js",
+
+
+// "node_modules/jszip/dist/jszip.js"
