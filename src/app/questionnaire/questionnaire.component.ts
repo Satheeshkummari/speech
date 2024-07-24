@@ -194,7 +194,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   handleUserResponse() {
     const userResponse = this.transcript.toLowerCase();
     console.log('Handling user response:', userResponse);
-
+    
     if (this.currentQuestionIndex === -1) {
       if (userResponse.includes('yes')) {
         console.log('User responded "yes". Moving to next question.');
@@ -215,12 +215,33 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
         console.log('Match found:', matchedOptions.join(', '));
         this.selectedOptions[this.currentQuestionIndex] = matchedOptions;
         this.transcript = '';
+        this.updateCheckboxes();
         this.announceNextQuestion();
       } else {
         console.log('No match found.');
         this.retryAnnouncement();
       }
     }
+  }
+
+  updateCheckboxes() {
+    // Get the options for the current question
+    const currentQuestionIndex = this.currentQuestionIndex;
+    if (currentQuestionIndex === undefined) return; // Exit if no question is available
+  
+    // Query checkboxes only for the current question
+    const checkboxes = document.querySelectorAll(`input[type="checkbox"][data-question-index="${currentQuestionIndex}"]`);
+  
+    checkboxes.forEach(checkbox => {
+      const label = checkbox.nextElementSibling as HTMLLabelElement;
+      const optionText = label.textContent?.trim().toLowerCase(); // Convert label text to lowercase
+   
+      const isSelected = this.selectedOptions[currentQuestionIndex]?.some(
+        option => option.toLowerCase() === optionText // Compare in lowercase
+      );
+   
+      (checkbox as HTMLInputElement).checked = isSelected;
+    });
   }
 
   matchResponse(userResponse: string, options: string[]): string[] {

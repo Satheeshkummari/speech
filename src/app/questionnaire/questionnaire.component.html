@@ -21,6 +21,7 @@
               #checkbox
               type="checkbox"
               [id]="option + i"
+              [attr.data-question-index]="i"
             />
             <label [for]="option + i">{{ option }}</label>
           </li>
