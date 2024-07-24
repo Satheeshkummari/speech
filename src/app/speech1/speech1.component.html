@@ -1,0 +1,16 @@
+<!-- questionnaire.component.html -->
+<div>
+  <button (click)="start()">Start Recording</button>
+  <div #ripple class="ripple"></div>
+  <div *ngIf="listening" class="recognized-text">{{ recognizedText }}</div>
+  <div *ngIf="confirmed">
+    <div *ngFor="let question of questions">
+      {{ question.options }}
+      <ul>
+        <li *ngFor="let option of question.options">
+          <input type="radio" [checked]="option === question.answer" /> {{ option }}
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

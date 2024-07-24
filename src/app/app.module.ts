@@ -9,12 +9,16 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { QuestionnaireComponent } from './questionnaire/questionnaire.component';
 import { SpeechComponent } from './speech/speech.component';
+import { SpeechrecoComponent } from './speechreco/speechreco.component';
+import { Speech1Component } from './speech1/speech1.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     QuestionnaireComponent,
-    SpeechComponent
+    SpeechComponent,
+    SpeechrecoComponent,
+    Speech1Component
   ],
   imports: [
     BrowserModule,

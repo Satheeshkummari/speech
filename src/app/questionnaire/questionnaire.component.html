@@ -1,36 +1,34 @@
-<div class="text-center mt-5">
-  <div *ngIf="!isQuestionnaireStarted">
-    <button class="btn btn-primary" (click)="startQuestionnaire()">
-      <i class="bi bi-play-circle"></i> Start Questionnaire
-    </button>
+<div *ngIf="!isQuestionnaireStarted">
+  <button class="btn btn-primary" (click)="startQuestionnaire()">
+    <i class="bi bi-play-circle"></i> Start Questionnaire
+  </button>
+</div>
+
+<div>
+  <div *ngIf="isListening" class="listening-indicator">
+    <div class="ripple" [class.active]="isSpeaking"></div>
+    <i class="bi bi-mic-mute-fill"></i>
+    <p *ngIf="!isSpeaking">Listening...</p>
+    <p *ngIf="isSpeaking">Voice detected...</p>
   </div>
+</div>
 
-  <div class="text-center mt-5">
-    <div *ngIf="isListening" class="listening-indicator">
-      <div class="ripple" [class.active]="isSpeaking"></div>
-      <i class="bi bi-mic-mute-fill"></i>
-      <p *ngIf="!isSpeaking">Listening...</p>
-      <p *ngIf="isSpeaking">Voice detected...</p>
-    </div>
-  </div>
+<p>Transcript: {{ transcript }}</p>
 
-  <p>Transcript: {{ transcript }}</p>
-
-  <div class="mt-5 p-3">
-    <div class="questions-list mt-5">
-      <div *ngFor="let question of questions; let i = index">
-        <p>{{ question.text }}</p>
-        <ul>
-          <li *ngFor="let option of question.options">
-            <input
-              type="checkbox"
-              [id]="option + i"
-              (change)="onOptionChange($event, option)"
-            />
-            <label [for]="option + i">{{ option }}</label>
-          </li>
-        </ul>
-      </div>
+<div class="p-3">
+  <div class="questions-list">
+    <div *ngFor="let question of questions; let i = index">
+      <p>{{ question.text }}</p>
+      <ul>
+        <li *ngFor="let option of question.options">
+          <input
+            type="checkbox"
+            [id]="option + i"
+            (change)="onOptionChange($event, option)"
+          />
+          <label [for]="option + i">{{ option }}</label>
+        </li>
+      </ul>
     </div>
   </div>
 </div>

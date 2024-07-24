@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-speech',
@@ -11,7 +11,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   isListening = false;
   isSpeaking = false;
   transcript = '';
-  currentQuestionIndex = 0;
+  currentQuestionIndex = -1;
   isQuestionnaireStarted = false;
   questions = [
     { text: 'What is your favorite color?', options: ['Red', 'Blue', 'Green', 'Yellow'] },
@@ -21,7 +21,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   ];
   selectedOptions: { [questionIndex: number]: string[] } = {};
 
-  constructor() {
+  constructor(private cdr: ChangeDetectorRef) {
     const { webkitSpeechRecognition }: IWindow = window as any;
     this.recognition = new webkitSpeechRecognition();
     this.recognition.continuous = true;
@@ -32,30 +32,35 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
         .map((result: any) => result[0])
         .map((result: any) => result.transcript)
         .join('');
-      this.transcript = interimTranscript;
+      this.transcript = interimTranscript.toLowerCase().trim();
       console.log('Transcript updated:', this.transcript);
+      this.cdr.detectChanges(); // Force change detection
+      this.handleUserResponse();
     };
 
-    this.recognition.onspeechstart = () => {
-      this.isSpeaking = true;
-      console.log('Speech started');
-    };
+    // this.recognition.onspeechstart = () => {
+    //   this.isSpeaking = true;
+    //   console.log('Speech started');
+    //   this.cdr.detectChanges(); // Force change detection
+    // };
 
-    this.recognition.onspeechend = () => {
-      this.isSpeaking = false;
-      console.log('Speech ended');
-    };
+    // this.recognition.onspeechend = () => {
+    //   this.isSpeaking = false;
+    //   console.log('Speech ended');
+    //   this.cdr.detectChanges(); // Force change detection
+    // };
 
-    this.recognition.onend = () => {
+    /* this.recognition.onend = () => {
       console.log("d:: onend")
-      if (this.isListening) {
+      if (!this.isListening) {
         this.isListening = false;
         console.log("d:: onend this.isListening", this.isListening)
         console.log("d:: this.isListening made false", this.isListening)
         console.log('Recognition ended');
         this.handleUserResponse();
+        this.cdr.detectChanges(); // Force change detection
       }
-    };
+    }; */
   }
 
   ngOnInit() {
@@ -104,6 +109,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
       console.log("d:: this.isListening made true")   
       this.isListening = true;
       this.recognition.start();
+      this.cdr.detectChanges(); // Force change detection
     }
   }
 
@@ -114,12 +120,15 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
       this.isListening = false;
       this.recognition.stop();
+      this.cdr.detectChanges(); // Force change detection
     }
   }
 
   showListeningIndicator() {
+    // this.isListening = true;
     // Add logic here to display your listening indicator (e.g., ripple effect)
     console.log('Listening indicator shown');
+    this.cdr.detectChanges(); // Force change detection
   }
 
   announceNextQuestion() {
@@ -140,9 +149,12 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
   handleUserResponse() {
     const userResponse = this.transcript.toLowerCase();
-    const currentQuestion = this.questions[this.currentQuestionIndex];
-
-    if (currentQuestion) {
+    if (this.currentQuestionIndex === -1 && userResponse.includes('yes')) {
+      // User confirmed to start the questionnaire
+      this.currentQuestionIndex = 0;
+      this.announceNextQuestion();
+    } else {
+      const currentQuestion = this.questions[this.currentQuestionIndex];
       const matchedOptions = this.matchResponse(userResponse, currentQuestion.options);
       if (matchedOptions.length) {
         console.log(`Match found: ${matchedOptions.join(', ')}`);
@@ -157,6 +169,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
       } else {
         console.log('No match found');
         this.stopRecording();
+        this.announceNextQuestion();
       }
     }
   }
@@ -182,12 +195,6 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     }
 
     console.log('Selected options:', this.selectedOptions);
-  }
-
-  @HostListener('window:resize', ['$event'])
-  onResize(event: Event): void {
-    const width = (event.target as Window).innerWidth;
-    console.log(width);
   }
 }
 

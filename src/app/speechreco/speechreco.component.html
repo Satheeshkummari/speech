@@ -1,0 +1,12 @@
+<div>
+    <button (click)="toggleListening()">
+      {{ isListening ? 'Stop Listening' : 'Start Listening' }}
+    </button>
+    <div [class.listening]="isListening" class="ripple-container">
+      <div id="transcript">
+        <p *ngFor="let line of transcriptLines">{{ line }}</p>
+        <p id="interim" class="interim-transcript"></p>
+      </div>
+    </div>
+  </div>
+  

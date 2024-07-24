@@ -1,0 +1,40 @@
+#transcript {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 20px;
+    height: 200px;
+    overflow-y: auto;
+  }
+  
+  .interim-transcript {
+    color: grey;
+  }
+  
+  .ripple-container {
+    position: relative;
+    &.listening::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 100px;
+      height: 100px;
+      margin-left: -50px;
+      margin-top: -50px;
+      border-radius: 50%;
+      border: 5px solid rgba(0, 150, 255, 0.5);
+      animation: ripple 1s infinite;
+    }
+  }
+  
+  @keyframes ripple {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+  }
+  
