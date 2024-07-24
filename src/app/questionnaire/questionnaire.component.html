@@ -4,31 +4,30 @@
   </button>
 </div>
 
-<div>
+<div *ngIf="isQuestionnaireStarted">
   <div *ngIf="isListening" class="listening-indicator">
-    <div class="ripple" [class.active]="isSpeaking"></div>
+    <div class="ripple"></div>
     <i class="bi bi-mic-mute-fill"></i>
-    <p *ngIf="!isSpeaking">Listening...</p>
-    <p *ngIf="isSpeaking">Voice detected...</p>
+    <p>Listening...</p>
   </div>
-</div>
 
-<p>Transcript: {{ transcript }}</p>
+  <p *ngIf="transcript">Transcript: {{ transcript }}</p>
 
-<div class="p-3">
-  <div class="questions-list">
-    <div *ngFor="let question of questions; let i = index">
-      <p>{{ question.text }}</p>
-      <ul>
-        <li *ngFor="let option of question.options">
-          <input
-            type="checkbox"
-            [id]="option + i"
-            (change)="onOptionChange($event, option)"
-          />
-          <label [for]="option + i">{{ option }}</label>
-        </li>
-      </ul>
+  <div class="p-3">
+    <div class="questions-list">
+      <div *ngFor="let question of questions; let i = index">
+        <p>{{ question.text }}</p>
+        <ul>
+          <li *ngFor="let option of question.options">
+            <input
+              type="checkbox"
+              [id]="option + i"
+              (change)="onOptionChange($event, option)"
+            />
+            <label [for]="option + i">{{ option }}</label>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>

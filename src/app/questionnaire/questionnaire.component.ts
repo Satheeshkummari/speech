@@ -9,7 +9,6 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
   recognition: any;
   isListening = false;
-  isSpeaking = false;
   transcript = '';
   currentQuestionIndex = -1;
   isQuestionnaireStarted = false;
@@ -21,6 +20,9 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   ];
   selectedOptions: { [questionIndex: number]: string[] } = {};
 
+  private timeoutId: any;
+  private noSpeechTimeout: any;
+
   constructor(private cdr: ChangeDetectorRef) {
     const { webkitSpeechRecognition }: IWindow = window as any;
     this.recognition = new webkitSpeechRecognition();
@@ -28,39 +30,31 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     this.recognition.interimResults = true;
 
     this.recognition.onresult = (event: any) => {
-      const interimTranscript = Array.from(event.results)
-        .map((result: any) => result[0])
-        .map((result: any) => result.transcript)
-        .join('');
-      this.transcript = interimTranscript.toLowerCase().trim();
+      clearTimeout(this.noSpeechTimeout); // Clear the no speech timeout
+
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        }
+      }
+
+      this.transcript = finalTranscript.toLowerCase().trim();
       console.log('Transcript updated:', this.transcript);
+
+      if (event.results[event.results.length - 1].isFinal) {
+        this.handleUserResponse();
+      }
+
       this.cdr.detectChanges(); // Force change detection
-      this.handleUserResponse();
     };
 
-    // this.recognition.onspeechstart = () => {
-    //   this.isSpeaking = true;
-    //   console.log('Speech started');
-    //   this.cdr.detectChanges(); // Force change detection
-    // };
-
-    // this.recognition.onspeechend = () => {
-    //   this.isSpeaking = false;
-    //   console.log('Speech ended');
-    //   this.cdr.detectChanges(); // Force change detection
-    // };
-
-    /* this.recognition.onend = () => {
-      console.log("d:: onend")
-      if (!this.isListening) {
-        this.isListening = false;
-        console.log("d:: onend this.isListening", this.isListening)
-        console.log("d:: this.isListening made false", this.isListening)
-        console.log('Recognition ended');
-        this.handleUserResponse();
-        this.cdr.detectChanges(); // Force change detection
+    this.recognition.onend = () => {
+      if (this.isListening) {
+        this.stopRecording();
       }
-    }; */
+    };
   }
 
   ngOnInit() {
@@ -88,16 +82,29 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   }
 
   startRecordingFor(seconds: number) {
-    console.log("d:: startRecordingFor this.isListening", this.isListening)
     if (!this.isListening) {
       this.startRecording();
-      setTimeout(() => {
+      this.timeoutId = setTimeout(() => {
         if (!this.transcript) {
           const retrySpeech = new SpeechSynthesisUtterance('I did not hear a response. Please try again.');
+          retrySpeech.onend = () => {
+            if (this.currentQuestionIndex === -1) {
+              this.announceConfirmation(); // Re-announce the confirmation if no valid response
+            } else {
+              this.announceCurrentQuestion(); // Re-announce the current question
+            }
+          };
           window.speechSynthesis.speak(retrySpeech);
           this.startRecordingFor(seconds); // Retry listening
         } else {
           this.handleUserResponse();
+        }
+      }, seconds * 1000);
+
+      this.noSpeechTimeout = setTimeout(() => {
+        if (this.isListening) {
+          console.log('No speech detected. Stopping recognition.');
+          this.stopRecording();
         }
       }, seconds * 1000);
     }
@@ -105,8 +112,6 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
   startRecording() {
     if (!this.isListening) {
-      console.log("d:: startRecording this.isListening", this.isListening)
-      console.log("d:: this.isListening made true")   
       this.isListening = true;
       this.recognition.start();
       this.cdr.detectChanges(); // Force change detection
@@ -115,24 +120,21 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
   stopRecording() {
     if (this.isListening) {
-      console.log("d:: startRecording this.isListening", this.isListening)
-      console.log("d:: this.isListening made false")
-
       this.isListening = false;
       this.recognition.stop();
+      clearTimeout(this.timeoutId); // Clear the timeout
+      clearTimeout(this.noSpeechTimeout); // Clear the no speech timeout
       this.cdr.detectChanges(); // Force change detection
     }
   }
 
   showListeningIndicator() {
-    // this.isListening = true;
-    // Add logic here to display your listening indicator (e.g., ripple effect)
     console.log('Listening indicator shown');
     this.cdr.detectChanges(); // Force change detection
   }
 
-  announceNextQuestion() {
-    if (this.currentQuestionIndex < this.questions.length) {
+  announceCurrentQuestion() {
+    if (this.currentQuestionIndex >= 0 && this.currentQuestionIndex < this.questions.length) {
       const question = this.questions[this.currentQuestionIndex];
       const questionText = `${question.text} Options are: ${question.options.join(', ')}`;
       const speech = new SpeechSynthesisUtterance(questionText);
@@ -141,6 +143,12 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
         this.startRecordingFor(5); // Listen for 5 seconds after announcing the question
       };
       window.speechSynthesis.speak(speech);
+    }
+  }
+
+  announceNextQuestion() {
+    if (this.currentQuestionIndex < this.questions.length) {
+      this.announceCurrentQuestion();
     } else {
       console.log('All questions answered');
       this.stopRecording();
@@ -149,16 +157,24 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
   handleUserResponse() {
     const userResponse = this.transcript.toLowerCase();
-    if (this.currentQuestionIndex === -1 && userResponse.includes('yes')) {
-      // User confirmed to start the questionnaire
-      this.currentQuestionIndex = 0;
-      this.announceNextQuestion();
+    if (this.currentQuestionIndex === -1) {
+      if (userResponse.includes('yes')) {
+        this.transcript = ''; // Clear the transcript
+        this.currentQuestionIndex = 0;
+        this.announceNextQuestion();
+      } else if (userResponse.includes('no')) {
+        console.log('User chose not to answer the questions.');
+        this.stopRecording();
+      } else {
+        this.announceConfirmation(); // Re-announce the confirmation if the response is unclear
+      }
     } else {
       const currentQuestion = this.questions[this.currentQuestionIndex];
       const matchedOptions = this.matchResponse(userResponse, currentQuestion.options);
       if (matchedOptions.length) {
         console.log(`Match found: ${matchedOptions.join(', ')}`);
         this.selectedOptions[this.currentQuestionIndex] = matchedOptions;
+        this.transcript = ''; // Clear the transcript
         this.currentQuestionIndex++;
         if (this.currentQuestionIndex < this.questions.length) {
           this.announceNextQuestion();
@@ -168,8 +184,13 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
         }
       } else {
         console.log('No match found');
-        this.stopRecording();
-        this.announceNextQuestion();
+        const retrySpeech = new SpeechSynthesisUtterance('No match found. Please try again.');
+        retrySpeech.onend = () => {
+          this.transcript = ''; // Clear the transcript
+          this.announceCurrentQuestion(); // Re-announce the current question
+        };
+        window.speechSynthesis.speak(retrySpeech);
+        this.startRecordingFor(5); // Retry listening for 5 seconds
       }
     }
   }
