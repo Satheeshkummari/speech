@@ -1,69 +1,44 @@
 .listening-indicator {
-  position: relative;
-  display: inline-block;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background-color: #007bff;
-  color: white;
-  cursor: pointer;
-  text-align: center;
-  line-height: 100px;
-  overflow: hidden; // Ensure ripple stays within the circle
-}
-
-.listening-indicator .ripple {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ripple {
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  animation: ripple-animation 1s infinite;
+  border: 5px solid rgba(0, 0, 0, 0.3);
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
 }
 
-.listening-indicator .ripple.active {
-  background: rgba(255, 255, 255, 0.6);
-  animation: active-ripple-animation 1s infinite;
-}
-
-@keyframes ripple-animation {
-  0% {
-    transform: translate(-50%, -50%) scale(0);
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1);
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(0);
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@keyframes active-ripple-animation {
-  0% {
-    transform: translate(-50%, -50%) scale(0);
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.2);
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(0);
-  }
-}
-
-.listening-indicator i {
-  font-size: 24px;
-}
-
-.listening-indicator p {
-  margin: 0;
-  font-size: 14px;
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
 }
 
 .questions-list {
   margin-top: 20px;
+}
+
+.questions-list p {
+  font-weight: bold;
 }
 
 .questions-list ul {
@@ -72,5 +47,5 @@
 }
 
 .questions-list li {
-  margin-bottom: 10px;
+  margin: 5px 0;
 }

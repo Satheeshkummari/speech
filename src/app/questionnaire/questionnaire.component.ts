@@ -12,6 +12,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   transcript = '';
   currentQuestionIndex = -1;
   isQuestionnaireStarted = false;
+  isAnnouncement = false;
   questions = [
     { text: 'What is your favorite color?', options: ['Red', 'Blue', 'Green', 'Yellow'] },
     { text: 'What is your favorite animal?', options: ['Dog', 'Cat', 'Bird', 'Fish'] },
@@ -20,8 +21,8 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   ];
   selectedOptions: { [questionIndex: number]: string[] } = {};
 
-  private timeoutId: any;
-  private noSpeechTimeout: any;
+  private silenceTimeoutId: any;
+  private responseTimeoutId: any;
 
   constructor(private cdr: ChangeDetectorRef) {
     const { webkitSpeechRecognition }: IWindow = window as any;
@@ -30,80 +31,68 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     this.recognition.interimResults = true;
 
     this.recognition.onresult = (event: any) => {
-      clearTimeout(this.noSpeechTimeout); // Clear the no speech timeout
-
-      let finalTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        }
-      }
-
-      this.transcript = finalTranscript.toLowerCase().trim();
-      console.log('Transcript updated:', this.transcript);
-
-      if (event.results[event.results.length - 1].isFinal) {
-        this.handleUserResponse();
-      }
-
-      this.cdr.detectChanges(); // Force change detection
+      console.log('Speech recognition result event:', event);
+      this.handleResult(event);
     };
 
     this.recognition.onend = () => {
+      console.log('Speech recognition ended.');
       if (this.isListening) {
-        this.stopRecording();
+        this.stopRecording(); // Ensure recording stops
       }
     };
   }
 
   ngOnInit() {
-    // Initialization code if needed
+    console.log('Component initialized.');
   }
 
   ngOnDestroy() {
     if (this.recognition) {
+      console.log('Stopping recognition on destroy.');
       this.recognition.stop();
     }
   }
 
   startQuestionnaire() {
+    console.log('Starting questionnaire.');
     this.isQuestionnaireStarted = true;
     this.announceConfirmation();
   }
 
   announceConfirmation() {
+    if (this.isAnnouncement) {
+      console.log('Confirmation announcement already in progress.');
+      return;
+    }
+
+    this.isAnnouncement = true;
+    console.log('Announcing confirmation: "Would you like to answer the questions?"');
     const speech = new SpeechSynthesisUtterance('Would you like to answer the questions?');
     speech.onend = () => {
+      console.log('Confirmation announcement ended.');
+      this.isAnnouncement = false;
       this.showListeningIndicator();
-      this.startRecordingFor(5);  // Listen for 5 seconds for response
+      this.startRecordingFor(5); // Listen for 5 seconds for response
     };
     window.speechSynthesis.speak(speech);
   }
 
   startRecordingFor(seconds: number) {
     if (!this.isListening) {
+      console.log('Starting recording for', seconds, 'seconds.');
       this.startRecording();
-      this.timeoutId = setTimeout(() => {
-        if (!this.transcript) {
-          const retrySpeech = new SpeechSynthesisUtterance('I did not hear a response. Please try again.');
-          retrySpeech.onend = () => {
-            if (this.currentQuestionIndex === -1) {
-              this.announceConfirmation(); // Re-announce the confirmation if no valid response
-            } else {
-              this.announceCurrentQuestion(); // Re-announce the current question
-            }
-          };
-          window.speechSynthesis.speak(retrySpeech);
-          this.startRecordingFor(seconds); // Retry listening
-        } else {
-          this.handleUserResponse();
+      this.responseTimeoutId = setTimeout(() => {
+        console.log('Response timeout reached.');
+        if (!this.transcript.trim()) {
+          console.log('No transcript detected. Retrying.');
+          this.retryAnnouncement();
         }
       }, seconds * 1000);
 
-      this.noSpeechTimeout = setTimeout(() => {
+      this.silenceTimeoutId = setTimeout(() => {
         if (this.isListening) {
-          console.log('No speech detected. Stopping recognition.');
+          console.log('Silence timeout reached. No speech detected.');
           this.stopRecording();
         }
       }, seconds * 1000);
@@ -113,32 +102,45 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   startRecording() {
     if (!this.isListening) {
       this.isListening = true;
+      console.log('Starting recording.');
       this.recognition.start();
-      this.cdr.detectChanges(); // Force change detection
+      this.cdr.detectChanges();
     }
   }
 
   stopRecording() {
     if (this.isListening) {
       this.isListening = false;
+      console.log('Stopping recording.');
       this.recognition.stop();
-      clearTimeout(this.timeoutId); // Clear the timeout
-      clearTimeout(this.noSpeechTimeout); // Clear the no speech timeout
-      this.cdr.detectChanges(); // Force change detection
+      clearTimeout(this.responseTimeoutId);
+      clearTimeout(this.silenceTimeoutId);
+      this.cdr.detectChanges();
     }
   }
 
   showListeningIndicator() {
-    console.log('Listening indicator shown');
-    this.cdr.detectChanges(); // Force change detection
+    if (!this.isAnnouncement) {
+      console.log('Listening indicator shown.');
+      this.cdr.detectChanges();
+    }
   }
 
   announceCurrentQuestion() {
+    if (this.isAnnouncement) {
+      console.log('Question announcement already in progress.');
+      return;
+    }
+
     if (this.currentQuestionIndex >= 0 && this.currentQuestionIndex < this.questions.length) {
+      this.isAnnouncement = true;
       const question = this.questions[this.currentQuestionIndex];
       const questionText = `${question.text} Options are: ${question.options.join(', ')}`;
+      console.log('Announcing question:', questionText);
       const speech = new SpeechSynthesisUtterance(questionText);
       speech.onend = () => {
+        console.log('Question announcement ended.');
+        this.isAnnouncement = false;
         this.showListeningIndicator();
         this.startRecordingFor(5); // Listen for 5 seconds after announcing the question
       };
@@ -147,56 +149,84 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   }
 
   announceNextQuestion() {
-    if (this.currentQuestionIndex < this.questions.length) {
+    if (this.currentQuestionIndex < this.questions.length - 1) {
+      this.currentQuestionIndex++;
+      console.log(`Moving to question ${this.currentQuestionIndex + 1}: ${this.questions[this.currentQuestionIndex].text}`);
       this.announceCurrentQuestion();
     } else {
-      console.log('All questions answered');
+      console.log('All questions answered. Ending questionnaire.');
       this.stopRecording();
+    }
+  }
+
+  handleResult(event: any) {
+    console.log('Processing results...');
+    clearTimeout(this.silenceTimeoutId);
+
+    let finalTranscript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalTranscript += transcript;
+      }
+    }
+
+    this.transcript = finalTranscript.toLowerCase().trim();
+    console.log('Transcript updated:', this.transcript);
+
+    if (this.transcript) {
+      console.log('User response detected:', this.transcript);
+      this.stopRecording(); // Stop recording to process the response
+      this.handleUserResponse();
+    } else {
+      console.log('Transcript is empty. Continuing to listen.');
     }
   }
 
   handleUserResponse() {
     const userResponse = this.transcript.toLowerCase();
+    console.log('Handling user response:', userResponse);
+    
     if (this.currentQuestionIndex === -1) {
       if (userResponse.includes('yes')) {
-        this.transcript = ''; // Clear the transcript
+        console.log('User responded "yes". Moving to next question.');
+        this.transcript = '';
         this.currentQuestionIndex = 0;
         this.announceNextQuestion();
       } else if (userResponse.includes('no')) {
         console.log('User chose not to answer the questions.');
         this.stopRecording();
       } else {
-        this.announceConfirmation(); // Re-announce the confirmation if the response is unclear
+        console.log('Confirmation unclear. Re-announcing.');
+        this.retryAnnouncement();
       }
     } else {
       const currentQuestion = this.questions[this.currentQuestionIndex];
       const matchedOptions = this.matchResponse(userResponse, currentQuestion.options);
       if (matchedOptions.length) {
-        console.log(`Match found: ${matchedOptions.join(', ')}`);
+        console.log('Match found:', matchedOptions.join(', '));
         this.selectedOptions[this.currentQuestionIndex] = matchedOptions;
-        this.transcript = ''; // Clear the transcript
-        this.currentQuestionIndex++;
-        if (this.currentQuestionIndex < this.questions.length) {
-          this.announceNextQuestion();
-        } else {
-          console.log('All questions answered');
-          this.stopRecording();
-        }
+        this.transcript = '';
+        this.announceNextQuestion();
       } else {
-        console.log('No match found');
-        const retrySpeech = new SpeechSynthesisUtterance('No match found. Please try again.');
-        retrySpeech.onend = () => {
-          this.transcript = ''; // Clear the transcript
-          this.announceCurrentQuestion(); // Re-announce the current question
-        };
-        window.speechSynthesis.speak(retrySpeech);
-        this.startRecordingFor(5); // Retry listening for 5 seconds
+        console.log('No match found.');
+        this.retryAnnouncement();
       }
     }
   }
 
   matchResponse(userResponse: string, options: string[]): string[] {
     return options.filter(option => userResponse.includes(option.toLowerCase()));
+  }
+
+  retryAnnouncement() {
+    if (this.currentQuestionIndex === -1) {
+      console.log('Retrying confirmation announcement.');
+      this.announceConfirmation();
+    } else {
+      console.log('Retrying current question announcement.');
+      this.announceCurrentQuestion();
+    }
   }
 
   onOptionChange(event: Event, option: string) {

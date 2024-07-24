@@ -1,11 +1,9 @@
-<div *ngIf="!isQuestionnaireStarted">
-  <button class="btn btn-primary" (click)="startQuestionnaire()">
+<div>
+  <button *ngIf="!isQuestionnaireStarted" class="btn btn-primary" (click)="startQuestionnaire()">
     <i class="bi bi-play-circle"></i> Start Questionnaire
   </button>
-</div>
 
-<div *ngIf="isQuestionnaireStarted">
-  <div *ngIf="isListening" class="listening-indicator">
+  <div *ngIf="isListening && !isAnnouncement" class="listening-indicator">
     <div class="ripple"></div>
     <i class="bi bi-mic-mute-fill"></i>
     <p>Listening...</p>
