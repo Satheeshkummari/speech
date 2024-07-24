@@ -57,7 +57,8 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   startQuestionnaire() {
     console.log('Starting questionnaire.');
     this.isQuestionnaireStarted = true;
-    this.announceConfirmation();
+    this.currentQuestionIndex = 0; // Start with the first question
+    this.announceCurrentQuestion(); // Ensure the first question is announced
   }
 
   announceConfirmation() {
@@ -145,13 +146,16 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
         this.startRecordingFor(5); // Listen for 5 seconds after announcing the question
       };
       window.speechSynthesis.speak(speech);
+    } else {
+      console.log('No more questions.');
+      this.stopRecording();
     }
   }
 
   announceNextQuestion() {
+    console.log(`Moving to next question. Current index: ${this.currentQuestionIndex}`);
     if (this.currentQuestionIndex < this.questions.length - 1) {
       this.currentQuestionIndex++;
-      console.log(`Moving to question ${this.currentQuestionIndex + 1}: ${this.questions[this.currentQuestionIndex].text}`);
       this.announceCurrentQuestion();
     } else {
       console.log('All questions answered. Ending questionnaire.');
@@ -191,8 +195,8 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
       if (userResponse.includes('yes')) {
         console.log('User responded "yes". Moving to next question.');
         this.transcript = '';
-        this.currentQuestionIndex = 0;
-        this.announceNextQuestion();
+        this.currentQuestionIndex = 0; // Start with the first question
+        this.announceCurrentQuestion(); // Ensure the first question is announced
       } else if (userResponse.includes('no')) {
         console.log('User chose not to answer the questions.');
         this.stopRecording();
@@ -207,7 +211,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
         console.log('Match found:', matchedOptions.join(', '));
         this.selectedOptions[this.currentQuestionIndex] = matchedOptions;
         this.transcript = '';
-        this.announceNextQuestion();
+        this.announceNextQuestion(); // Move to the next question after processing response
       } else {
         console.log('No match found.');
         this.retryAnnouncement();
@@ -220,11 +224,10 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   }
 
   retryAnnouncement() {
+    console.log('Retrying announcement.');
     if (this.currentQuestionIndex === -1) {
-      console.log('Retrying confirmation announcement.');
       this.announceConfirmation();
     } else {
-      console.log('Retrying current question announcement.');
       this.announceCurrentQuestion();
     }
   }
