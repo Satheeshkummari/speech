@@ -18,9 +18,9 @@
         <ul>
           <li *ngFor="let option of question.options">
             <input
+              #checkbox
               type="checkbox"
               [id]="option + i"
-              (change)="onOptionChange($event, option)"
             />
             <label [for]="option + i">{{ option }}</label>
           </li>

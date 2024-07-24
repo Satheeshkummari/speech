@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChildren, QueryList, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'app-speech',
@@ -23,6 +23,8 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
   private silenceTimeoutId: any;
   private responseTimeoutId: any;
+
+  @ViewChildren('checkbox') checkboxes!: QueryList<ElementRef>;
 
   constructor(private cdr: ChangeDetectorRef) {
     const { webkitSpeechRecognition }: IWindow = window as any;
@@ -211,6 +213,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
         console.log('Match found:', matchedOptions.join(', '));
         this.selectedOptions[this.currentQuestionIndex] = matchedOptions;
         this.transcript = '';
+        this.updateCheckboxes(); // Update the checkboxes
         this.announceNextQuestion(); // Move to the next question after processing response
       } else {
         console.log('No match found.');
@@ -232,23 +235,23 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     }
   }
 
-  onOptionChange(event: Event, option: string) {
-    const currentQuestionIndex = this.currentQuestionIndex;
-    if (!this.selectedOptions[currentQuestionIndex]) {
-      this.selectedOptions[currentQuestionIndex] = [];
-    }
+  updateCheckboxes() {
+    console.log('Updating checkboxes based on selected options:', this.selectedOptions[this.currentQuestionIndex]);
 
-    const isSelected = (event.target as HTMLInputElement).checked;
-    if (isSelected) {
-      this.selectedOptions[currentQuestionIndex].push(option);
-    } else {
-      const index = this.selectedOptions[currentQuestionIndex].indexOf(option);
-      if (index > -1) {
-        this.selectedOptions[currentQuestionIndex].splice(index, 1);
+    // Iterate over the checkboxes and set their checked state based on selectedOptions
+    this.checkboxes.forEach((checkbox: ElementRef) => {
+      const checkboxElement = checkbox.nativeElement as HTMLInputElement;
+      const label = checkboxElement.nextElementSibling as HTMLLabelElement;
+      const optionText = label?.textContent?.trim().toLowerCase() || '';
+
+      if (this.selectedOptions[this.currentQuestionIndex]?.includes(optionText)) {
+        checkboxElement.checked = true;
+      } else {
+        checkboxElement.checked = false;
       }
-    }
-
-    console.log('Selected options:', this.selectedOptions);
+    });
+    
+    this.cdr.detectChanges();
   }
 }
 
