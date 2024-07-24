@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChildren, QueryList, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-speech',
@@ -24,8 +24,6 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   private silenceTimeoutId: any;
   private responseTimeoutId: any;
 
-  @ViewChildren('checkbox') checkboxes!: QueryList<ElementRef>;
-
   constructor(private cdr: ChangeDetectorRef) {
     const { webkitSpeechRecognition }: IWindow = window as any;
     this.recognition = new webkitSpeechRecognition();
@@ -33,14 +31,13 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     this.recognition.interimResults = true;
 
     this.recognition.onresult = (event: any) => {
-      console.log('Speech recognition result event:', event);
       this.handleResult(event);
     };
 
     this.recognition.onend = () => {
       console.log('Speech recognition ended.');
       if (this.isListening) {
-        this.stopRecording(); // Ensure recording stops
+        this.stopRecording();
       }
     };
   }
@@ -59,8 +56,8 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   startQuestionnaire() {
     console.log('Starting questionnaire.');
     this.isQuestionnaireStarted = true;
-    this.currentQuestionIndex = 0; // Start with the first question
-    this.announceCurrentQuestion(); // Ensure the first question is announced
+    this.currentQuestionIndex = 0;
+    this.announceCurrentQuestion();
   }
 
   announceConfirmation() {
@@ -70,13 +67,13 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     }
 
     this.isAnnouncement = true;
-    console.log('Announcing confirmation: "Would you like to answer the questions?"');
+    console.log('Announcing confirmation.');
     const speech = new SpeechSynthesisUtterance('Would you like to answer the questions?');
     speech.onend = () => {
       console.log('Confirmation announcement ended.');
       this.isAnnouncement = false;
       this.showListeningIndicator();
-      this.startRecordingFor(5); // Listen for 5 seconds for response
+      this.startRecordingFor(5);
     };
     window.speechSynthesis.speak(speech);
   }
@@ -85,20 +82,25 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     if (!this.isListening) {
       console.log('Starting recording for', seconds, 'seconds.');
       this.startRecording();
+
       this.responseTimeoutId = setTimeout(() => {
         console.log('Response timeout reached.');
         if (!this.transcript.trim()) {
           console.log('No transcript detected. Retrying.');
+          this.retryAnnouncement();
+        } else {
+          // If there is a transcript but no match, retry
+          console.log('Transcript detected but no match. Retrying.');
           this.retryAnnouncement();
         }
       }, seconds * 1000);
 
       this.silenceTimeoutId = setTimeout(() => {
         if (this.isListening) {
-          console.log('Silence timeout reached. No speech detected.');
+          console.log('Silence timeout reached. Stopping recording.');
           this.stopRecording();
         }
-      }, seconds * 1000);
+      }, (seconds + 2) * 1000); // Buffer time
     }
   }
 
@@ -139,13 +141,13 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
       this.isAnnouncement = true;
       const question = this.questions[this.currentQuestionIndex];
       const questionText = `${question.text} Options are: ${question.options.join(', ')}`;
-      console.log('Announcing question:', questionText);
+      console.log('Announcing question.');
       const speech = new SpeechSynthesisUtterance(questionText);
       speech.onend = () => {
         console.log('Question announcement ended.');
         this.isAnnouncement = false;
         this.showListeningIndicator();
-        this.startRecordingFor(5); // Listen for 5 seconds after announcing the question
+        this.startRecordingFor(5);
       };
       window.speechSynthesis.speak(speech);
     } else {
@@ -155,12 +157,12 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   }
 
   announceNextQuestion() {
-    console.log(`Moving to next question. Current index: ${this.currentQuestionIndex}`);
+    console.log('Moving to next question.');
     if (this.currentQuestionIndex < this.questions.length - 1) {
       this.currentQuestionIndex++;
       this.announceCurrentQuestion();
     } else {
-      console.log('All questions answered. Ending questionnaire.');
+      console.log('All questions answered.');
       this.stopRecording();
     }
   }
@@ -182,7 +184,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
     if (this.transcript) {
       console.log('User response detected:', this.transcript);
-      this.stopRecording(); // Stop recording to process the response
+      this.stopRecording();
       this.handleUserResponse();
     } else {
       console.log('Transcript is empty. Continuing to listen.');
@@ -192,13 +194,13 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   handleUserResponse() {
     const userResponse = this.transcript.toLowerCase();
     console.log('Handling user response:', userResponse);
-    
+
     if (this.currentQuestionIndex === -1) {
       if (userResponse.includes('yes')) {
         console.log('User responded "yes". Moving to next question.');
         this.transcript = '';
-        this.currentQuestionIndex = 0; // Start with the first question
-        this.announceCurrentQuestion(); // Ensure the first question is announced
+        this.currentQuestionIndex = 0;
+        this.announceCurrentQuestion();
       } else if (userResponse.includes('no')) {
         console.log('User chose not to answer the questions.');
         this.stopRecording();
@@ -213,8 +215,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
         console.log('Match found:', matchedOptions.join(', '));
         this.selectedOptions[this.currentQuestionIndex] = matchedOptions;
         this.transcript = '';
-        this.updateCheckboxes(); // Update the checkboxes
-        this.announceNextQuestion(); // Move to the next question after processing response
+        this.announceNextQuestion();
       } else {
         console.log('No match found.');
         this.retryAnnouncement();
@@ -233,25 +234,6 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     } else {
       this.announceCurrentQuestion();
     }
-  }
-
-  updateCheckboxes() {
-    console.log('Updating checkboxes based on selected options:', this.selectedOptions[this.currentQuestionIndex]);
-
-    // Iterate over the checkboxes and set their checked state based on selectedOptions
-    this.checkboxes.forEach((checkbox: ElementRef) => {
-      const checkboxElement = checkbox.nativeElement as HTMLInputElement;
-      const label = checkboxElement.nextElementSibling as HTMLLabelElement;
-      const optionText = label?.textContent?.trim().toLowerCase() || '';
-
-      if (this.selectedOptions[this.currentQuestionIndex]?.includes(optionText)) {
-        checkboxElement.checked = true;
-      } else {
-        checkboxElement.checked = false;
-      }
-    });
-    
-    this.cdr.detectChanges();
   }
 }
 
