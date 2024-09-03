@@ -1,4 +1,8 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+// import { PollyService } from '../services/polly.service';
+import { Polly1Service } from '../services/polly1.service';
+import { AwsVoiceIDService } from '../services/awsvoiceID.service';
+
 
 @Component({
   selector: 'app-speech',
@@ -13,18 +17,25 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   currentQuestionIndex = -1;
   isQuestionnaireStarted = false;
   isAnnouncement = false;
+  // questions = [
+  //   { text: 'What is your favorite color?', options: ['Red', 'Blue', 'Green', 'Yellow'] },
+  //   { text: 'What is your favorite animal?', options: ['Dog', 'Cat', 'Bird', 'Fish'] },
+  //   { text: 'What is your favorite food?', options: ['Pizza', 'Burger', 'Sushi', 'Pasta'] },
+  //   { text: 'What is your favorite sport?', options: ['Football', 'Basketball', 'Tennis', 'Swimming'] }
+  // ];
   questions = [
-    { text: 'What is your favorite color?', options: ['Red', 'Blue', 'Green', 'Yellow'] },
-    { text: 'What is your favorite animal?', options: ['Dog', 'Cat', 'Bird', 'Fish'] },
-    { text: 'What is your favorite food?', options: ['Pizza', 'Burger', 'Sushi', 'Pasta'] },
-    { text: 'What is your favorite sport?', options: ['Football', 'Basketball', 'Tennis', 'Swimming'] }
+    { text: '¿Cuál es tu color favorito?', options: ['Rojo', 'Azul', 'Verde', 'Amarillo'] },
+    { text: '¿Cuál es tu animal favorito?', options: ['Perro', 'Gato', 'Pájaro', 'Pez'] },
+    { text: '¿Cuál es tu comida favorita?', options: ['Pizza', 'Hamburguesa', 'Sushi', 'Pasta'] },
+    { text: '¿Cuál es tu deporte favorito?', options: ['Fútbol', 'Baloncesto', 'Tenis', 'Natación'] }
   ];
+
   selectedOptions: { [questionIndex: number]: string[] } = {};
 
   private silenceTimeoutId: any;
   private responseTimeoutId: any;
 
-  constructor(private cdr: ChangeDetectorRef) {
+  constructor(private cdr: ChangeDetectorRef, private pollyService: Polly1Service, private awsVoiceService: AwsVoiceIDService) {
     const { webkitSpeechRecognition }: IWindow = window as any;
     this.recognition = new webkitSpeechRecognition();
     this.recognition.continuous = true;
@@ -68,14 +79,25 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
     this.isAnnouncement = true;
     console.log('Announcing confirmation.');
-    const speech = new SpeechSynthesisUtterance('Would you like to answer the questions?');
+    /* const speech = new SpeechSynthesisUtterance('Would you like to answer the questions?');
     speech.onend = () => {
       console.log('Confirmation announcement ended.');
       this.isAnnouncement = false;
       this.showListeningIndicator();
       this.startRecordingFor(5);
     };
-    window.speechSynthesis.speak(speech);
+    window.speechSynthesis.speak(speech); */
+
+    // this.pollyService.playSpeechWithCallback('Would you like to answer the questions?', 'Joanna', 'en-US', () => {
+    let lang_code = "es-ES";
+    let voiceId = this.awsVoiceService.getAvailableVoice(lang_code);
+    this.pollyService.playSpeechWithCallback('Would you like to answer the questions?', voiceId, lang_code, () => {
+      console.log('Confirmation announcement ended.');
+      this.isAnnouncement = false;
+      this.showListeningIndicator();
+      this.startRecordingFor(5);
+    });
+
   }
 
   startRecordingFor(seconds: number) {
@@ -142,14 +164,24 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
       const question = this.questions[this.currentQuestionIndex];
       const questionText = `${question.text} Options are: ${question.options.join(', ')}`;
       console.log('Announcing question.');
-      const speech = new SpeechSynthesisUtterance(questionText);
-      speech.onend = () => {
+      // const speech = new SpeechSynthesisUtterance(questionText);
+      // speech.onend = () => {
+      //   console.log('Question announcement ended.');
+      //   this.isAnnouncement = false;
+      //   this.showListeningIndicator();
+      //   this.startRecordingFor(5);
+      // };
+      // window.speechSynthesis.speak(speech);
+      // this.pollyService.playSpeechWithCallback(questionText, 'Joanna', 'en-US', () => {
+
+      let lang_code = "es-ES";
+      let voiceId = this.awsVoiceService.getAvailableVoice(lang_code);
+      this.pollyService.playSpeechWithCallback(questionText, voiceId, lang_code, () => {
         console.log('Question announcement ended.');
         this.isAnnouncement = false;
         this.showListeningIndicator();
         this.startRecordingFor(5);
-      };
-      window.speechSynthesis.speak(speech);
+      });
     } else {
       console.log('No more questions.');
       this.stopRecording();

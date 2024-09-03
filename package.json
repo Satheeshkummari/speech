@@ -19,6 +19,7 @@
     "@angular/platform-browser-dynamic": "^15.0.0",
     "@angular/router": "^15.0.0",
     "@types/webspeechapi": "^0.0.29",
+    "aws-sdk": "^2.1687.0",
     "bootstrap": "^4.5.0",
     "jquery": "^3.7.0",
     "popper.js": "^1.14.3",
