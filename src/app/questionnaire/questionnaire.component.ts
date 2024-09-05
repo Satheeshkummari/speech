@@ -90,14 +90,18 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
     // this.pollyService.playSpeechWithCallback('Would you like to answer the questions?', 'Joanna', 'en-US', () => {
     let lang_code = "es-ES";
-    let voiceId = this.awsVoiceService.getAvailableVoice(lang_code);
-    this.pollyService.playSpeechWithCallback('Would you like to answer the questions?', voiceId, lang_code, () => {
-      console.log('Confirmation announcement ended.');
-      this.isAnnouncement = false;
-      this.showListeningIndicator();
-      this.startRecordingFor(5);
+    // let voiceId = this.awsVoiceService.getAvailableVoice(lang_code);
+    this.pollyService.getBestVoiceForLanguage(lang_code, 'Female').then(bestVoice => {
+      if (bestVoice) {
+        // this.pollyService.playSpeechWithCallback(bestVoice.Id, bestVoice.SupportedEngines[0]);  // Use the best voiceId and engine
+        this.pollyService.playSpeechWithCallback('Would you like to answer the questions?', bestVoice.Id, lang_code, () => {
+          console.log('Confirmation announcement ended.');
+          this.isAnnouncement = false;
+          this.showListeningIndicator();
+          this.startRecordingFor(5);
+        });
+      }
     });
-
   }
 
   startRecordingFor(seconds: number) {
@@ -175,12 +179,16 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
       // this.pollyService.playSpeechWithCallback(questionText, 'Joanna', 'en-US', () => {
 
       let lang_code = "es-ES";
-      let voiceId = this.awsVoiceService.getAvailableVoice(lang_code);
-      this.pollyService.playSpeechWithCallback(questionText, voiceId, lang_code, () => {
-        console.log('Question announcement ended.');
-        this.isAnnouncement = false;
-        this.showListeningIndicator();
-        this.startRecordingFor(5);
+      // let voiceId = this.awsVoiceService.getAvailableVoice(lang_code);
+      this.pollyService.getBestVoiceForLanguage(lang_code, 'Female').then(bestVoice => {
+        if (bestVoice) {
+          this.pollyService.playSpeechWithCallback(questionText, bestVoice.Id, lang_code, () => {
+            console.log('Question announcement ended.');
+            this.isAnnouncement = false;
+            this.showListeningIndicator();
+            this.startRecordingFor(5);
+          });
+        }
       });
     } else {
       console.log('No more questions.');
@@ -226,7 +234,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
   handleUserResponse() {
     const userResponse = this.transcript.toLowerCase();
     console.log('Handling user response:', userResponse);
-    
+
     if (this.currentQuestionIndex === -1) {
       if (userResponse.includes('yes')) {
         console.log('User responded "yes". Moving to next question.');
@@ -260,18 +268,18 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     // Get the options for the current question
     const currentQuestionIndex = this.currentQuestionIndex;
     if (currentQuestionIndex === undefined) return; // Exit if no question is available
-  
+
     // Query checkboxes only for the current question
     const checkboxes = document.querySelectorAll(`input[type="checkbox"][data-question-index="${currentQuestionIndex}"]`);
-  
+
     checkboxes.forEach(checkbox => {
       const label = checkbox.nextElementSibling as HTMLLabelElement;
       const optionText = label.textContent?.trim().toLowerCase(); // Convert label text to lowercase
-   
+
       const isSelected = this.selectedOptions[currentQuestionIndex]?.some(
         option => option.toLowerCase() === optionText // Compare in lowercase
       );
-   
+
       (checkbox as HTMLInputElement).checked = isSelected;
     });
   }

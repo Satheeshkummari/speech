@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { VoiceData } from '../models/voice-id';
+import { Polly1Service } from './polly1.service';
 
 // Declare AWS globally
 declare const AWS: any;
@@ -8,6 +9,7 @@ declare const AWS: any;
   providedIn: 'root'
 })
 export class AwsVoiceIDService {
+  constructor(private pollyService: Polly1Service){}
 
   public getAvailableVoice(languageCode: string): string {
     // Find the entry for the given language code
@@ -45,460 +47,435 @@ export class AwsVoiceIDService {
     return ""; // No voice ID available
   }
 
-  voicesJson: VoiceData[] = [
+  voicesJson: any[] = [
     {
-      "Language": "Arabic",
-      "LanguageCode": "arb",
-      "VoiceId": "Zeina",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "No",
-      "StandardVoice": "Yes"
-    },
-    {
-      "Language": "Arabic (Gulf)",
-      "LanguageCode": "ar-AE",
-      "VoiceIds": ["Hala", "Zayd"],
-      "Genders": ["Female", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "No",
-      "StandardVoice": ["Yes", "Yes"]
-    },
-    {
-      "Language": "Dutch (Belgian)",
-      "LanguageCode": "nl-BE",
-      "VoiceId": "Lisa",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "Yes",
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "Catalan",
-      "LanguageCode": "ca-ES",
-      "VoiceId": "Arlet",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "Yes",
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "Czech",
-      "LanguageCode": "cs-CZ",
-      "VoiceId": "Jitka",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "Yes",
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "Chinese (Cantonese)",
-      "LanguageCode": "yue-CN",
-      "VoiceId": "Hiujin",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "Yes",
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "Chinese (Mandarin)",
-      "LanguageCode": "cmn-CN",
-      "VoiceId": "Zhiyu",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes"],
-      "StandardVoice": ["Yes", "Yes"]
-    },
-    {
-      "Language": "Danish",
-      "LanguageCode": "da-DK",
-      "VoiceIds": ["Naja", "Mads", "Sofie"],
-      "Genders": ["Female", "Male", "Female"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes"],
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "Dutch",
-      "LanguageCode": "nl-NL",
-      "VoiceIds": ["Laura", "Lotte", "Ruben"],
-      "Genders": ["Female", "Female", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes"],
-      "StandardVoice": ["No", "No", "No"]
-    },
-    {
-      "Language": "English (Australian)",
-      "LanguageCode": "en-AU",
-      "VoiceIds": ["Nicole", "Olivia", "Russell"],
-      "Genders": ["Female", "Female", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes"],
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "English (British)",
-      "LanguageCode": "en-GB",
-      "VoiceIds": ["Amy", "Emma", "Brian", "Arthur"],
-      "Genders": ["Female", "Female", "Male", "Male"],
-      "GenerativeVoice": ["Yes", "No", "No", "No"],
-      "LongFormVoice": ["No", "No", "No", "No"],
-      "NeuralVoice": ["Yes", "Yes", "Yes", "Yes"],
-      "StandardVoice": ["Yes", "Yes", "Yes", "No"]
-    },
-    {
-      "Language": "English (Indian)",
-      "LanguageCode": "en-IN",
-      "VoiceIds": ["Aditi", "Raveena", "Kajal"],
-      "Genders": ["Female", "Female", "Female"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes"],
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "English (Ireland)",
-      "LanguageCode": "en-IE",
-      "VoiceId": "Niamh",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "Yes",
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "English (New Zealand)",
-      "LanguageCode": "en-NZ",
-      "VoiceId": "Aria",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "Yes",
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "English (South African)",
-      "LanguageCode": "en-ZA",
-      "VoiceId": "Ayanda",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "Yes",
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "English (US)",
-      "LanguageCode": "en-US",
-      "VoiceIds": [
-        "Danielle", "Gregory", "Ivy", "Joanna", "Kendra", "Kimberly", "Salli",
-        "Joey", "Justin", "Kevin", "Matthew", "Ruth", "Stephen"
-      ],
-      "Genders": [
-        "Female", "Male", "Female (child)", "Female", "Female", "Female", "Female",
-        "Male", "Male (child)", "Male (child)", "Male", "Female", "Male"
-      ],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": [
-        "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes",
-        "Yes", "Yes", "Yes", "Yes", "Yes", "Yes"
-      ],
-      "StandardVoice": [
-        "No", "No", "No", "No", "No", "No", "No",
-        "No", "No", "No", "Yes", "No", "No"
+      "language": "Arabic",
+      "language_code": "arb",
+      "voices": [
+        {
+          "name": "Zeina",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": false,
+          "standard_voice": true
+        }
       ]
     },
     {
-      "Language": "English (Welsh)",
-      "LanguageCode": "en-GB-WLS",
-      "VoiceId": "Geraint",
-      "Gender": "Male",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "No",
-      "StandardVoice": "Yes"
+      "language": "Arabic (Gulf)",
+      "language_code": "ar-AE",
+      "voices": [
+        {
+          "name": "Hala",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        },
+        {
+          "name": "Zayd",
+          "gender": "Male",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        }
+      ]
     },
     {
-      "Language": "Finnish",
-      "LanguageCode": "fi-FI",
-      "VoiceId": "Suvi",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "Yes",
-      "StandardVoice": "No"
+      "language": "Dutch (Belgian)",
+      "language_code": "nl-BE",
+      "voices": [
+        {
+          "name": "Lisa",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        }
+      ]
     },
     {
-      "Language": "French",
-      "LanguageCode": "fr-FR",
-      "VoiceIds": ["Céline", "Léa", "Mathieu", "Rémi"],
-      "Genders": ["Female", "Female", "Male", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes", "Yes"],
-      "StandardVoice": ["No", "No", "No", "No"]
+      "language": "Catalan",
+      "language_code": "ca-ES",
+      "voices": [
+        {
+          "name": "Arlet",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        }
+      ]
     },
     {
-      "Language": "French (Belgian)",
-      "LanguageCode": "fr-BE",
-      "VoiceId": "Isabelle",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "Yes",
-      "StandardVoice": "No"
+      "language": "Czech",
+      "language_code": "cs-CZ",
+      "voices": [
+        {
+          "name": "Jitka",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        }
+      ]
     },
     {
-      "Language": "French (Canadian)",
-      "LanguageCode": "fr-CA",
-      "VoiceIds": ["Chantal", "Gabrielle", "Liam"],
-      "Genders": ["Female", "Female", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes"],
-      "StandardVoice": ["No", "No", "No"]
+      "language": "Chinese (Cantonese)",
+      "language_code": "yue-CN",
+      "voices": [
+        {
+          "name": "Hiujin",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        }
+      ]
     },
     {
-      "Language": "German",
-      "LanguageCode": "de-DE",
-      "VoiceIds": ["Marlene", "Vicki", "Hans", "Daniel"],
-      "Genders": ["Female", "Female", "Male", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes", "Yes"],
-      "StandardVoice": ["No", "No", "No", "No"]
+      "language": "Chinese (Mandarin)",
+      "language_code": "cmn-CN",
+      "voices": [
+        {
+          "name": "Zhiyu",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": true
+        }
+      ]
     },
     {
-      "Language": "German (Austrian)",
-      "LanguageCode": "de-AT",
-      "VoiceId": "Hannah",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "Yes",
-      "StandardVoice": "No"
+      "language": "Danish",
+      "language_code": "da-DK",
+      "voices": [
+        {
+          "name": "Naja",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        },
+        {
+          "name": "Mads",
+          "gender": "Male",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        },
+        {
+          "name": "Sofie",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        }
+      ]
     },
     {
-      "Language": "German (Swiss)",
-      "LanguageCode": "de-CH",
-      "VoiceId": "Sabrina",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "Yes",
-      "StandardVoice": "No"
+      "language": "Dutch",
+      "language_code": "nl-NL",
+      "voices": [
+        {
+          "name": "Laura",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        },
+        {
+          "name": "Lotte",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Ruben",
+          "gender": "Male",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": true
+        }
+      ]
     },
     {
-      "Language": "Hindi",
-      "LanguageCode": "hi-IN",
-      "VoiceIds": ["Aditi", "Kajal"],
-      "Genders": ["Female", "Female"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes"],
-      "StandardVoice": "No"
+      "language": "English (Australian)",
+      "language_code": "en-AU",
+      "voices": [
+        {
+          "name": "Nicole",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": false,
+          "standard_voice": true
+        },
+        {
+          "name": "Olivia",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        },
+        {
+          "name": "Russell",
+          "gender": "Male",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": true
+        }
+      ]
     },
     {
-      "Language": "Icelandic",
-      "LanguageCode": "is-IS",
-      "VoiceIds": ["Dóra", "Karl"],
-      "Genders": ["Female", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes"],
-      "StandardVoice": "No"
+      "language": "English (British)",
+      "language_code": "en-GB",
+      "voices": [
+        {
+          "name": "Amy",
+          "gender": "Female",
+          "generative_voice": true,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Emma",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Brian",
+          "gender": "Male",
+          "generative_voice": true,
+          "long_form_voice": true,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Arthur",
+          "gender": "Male",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": true
+        }
+      ]
     },
     {
-      "Language": "Italian",
-      "LanguageCode": "it-IT",
-      "VoiceIds": ["Carla", "Bianca", "Giorgio", "Adriano"],
-      "Genders": ["Female", "Female", "Male", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes", "Yes"],
-      "StandardVoice": ["No", "No", "No", "No"]
+      "language": "English (Indian)",
+      "language_code": "en-IN",
+      "voices": [
+        {
+          "name": "Aditi",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Raveena",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Kajal",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": true
+        }
+      ]
     },
     {
-      "Language": "Japanese",
-      "LanguageCode": "ja-JP",
-      "VoiceIds": ["Mizuki", "Takumi", "Kazuha", "Tomoko"],
-      "Genders": ["Female", "Male", "Female", "Female"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes", "Yes"],
-      "StandardVoice": ["No", "No", "No", "No"]
+      "language": "English (Ireland)",
+      "language_code": "en-IE",
+      "voices": [
+        {
+          "name": "Niamh",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        }
+      ]
     },
     {
-      "Language": "Korean",
-      "LanguageCode": "ko-KR",
-      "VoiceId": "Seoyeon",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes"],
-      "StandardVoice": "No"
+      "language": "English (New Zealand)",
+      "language_code": "en-NZ",
+      "voices": [
+        {
+          "name": "Aria",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        }
+      ]
     },
     {
-      "Language": "Norwegian",
-      "LanguageCode": "nb-NO",
-      "VoiceIds": ["Liv", "Ida"],
-      "Genders": ["Female", "Female"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes"],
-      "StandardVoice": "No"
+      "language": "English (South African)",
+      "language_code": "en-ZA",
+      "voices": [
+        {
+          "name": "Ayanda",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        }
+      ]
     },
     {
-      "Language": "Polish",
-      "LanguageCode": "pl-PL",
-      "VoiceIds": ["Ewa", "Maja", "Jacek", "Jan", "Ola"],
-      "Genders": ["Female", "Female", "Male", "Male", "Female"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes", "Yes", "No"],
-      "StandardVoice": ["No", "No", "No", "No", "No"]
+      "language": "English (US)",
+      "language_code": "en-US",
+      "voices": [
+        {
+          "name": "Danielle",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        },
+        {
+          "name": "Gregory",
+          "gender": "Male",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        },
+        {
+          "name": "Ivy",
+          "gender": "Female (child)",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        },
+        {
+          "name": "Joanna",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": true,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Kendra",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": true,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Kimberly",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Matthew",
+          "gender": "Male",
+          "generative_voice": false,
+          "long_form_voice": true,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Salli",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": true,
+          "neural_voice": true,
+          "standard_voice": true
+        }
+      ]
     },
     {
-      "Language": "Portuguese (Brazilian)",
-      "LanguageCode": "pt-BR",
-      "VoiceIds": ["Camila", "Vitória", "Ricardo", "Thiago"],
-      "Genders": ["Female", "Female", "Male", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes", "Yes"],
-      "StandardVoice": ["No", "No", "No", "No"]
+      "language": "French (Canadian)",
+      "language_code": "fr-CA",
+      "voices": [
+        {
+          "name": "Chantal",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Gabrielle",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": false,
+          "neural_voice": true,
+          "standard_voice": false
+        }
+      ]
     },
     {
-      "Language": "Portuguese (European)",
-      "LanguageCode": "pt-PT",
-      "VoiceIds": ["Inês", "Cristiano"],
-      "Genders": ["Female", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes"],
-      "StandardVoice": ["Yes", "Yes"]
-    },
-    {
-      "Language": "Romanian",
-      "LanguageCode": "ro-RO",
-      "VoiceId": "Carmen",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "Yes",
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "Russian",
-      "LanguageCode": "ru-RU",
-      "VoiceIds": ["Tatyana", "Maxim"],
-      "Genders": ["Female", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes"],
-      "StandardVoice": ["No", "No"]
-    },
-    {
-      "Language": "Spanish (European)",
-      "LanguageCode": "es-ES",
-      "VoiceIds": ["Conchita", "Lucia", "Enrique", "Sergio"],
-      "Genders": ["Female", "Female", "Male", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes", "Yes"],
-      "StandardVoice": ["No", "No", "No", "No"]
-    },
-    {
-      "Language": "Spanish (Mexican)",
-      "LanguageCode": "es-MX",
-      "VoiceIds": ["Mia", "Andrés"],
-      "Genders": ["Female", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes"],
-      "StandardVoice": ["No", "No"]
-    },
-    {
-      "Language": "Spanish (US)",
-      "LanguageCode": "es-US",
-      "VoiceIds": ["Lupe", "Penélope", "Miguel", "Pedro"],
-      "Genders": ["Female", "Female", "Male", "Male"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes", "Yes", "Yes"],
-      "StandardVoice": ["No", "No", "No", "No"]
-    },
-    {
-      "Language": "Swedish",
-      "LanguageCode": "sv-SE",
-      "VoiceIds": ["Astrid", "Elin"],
-      "Genders": ["Female", "Female"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes"],
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "Turkish",
-      "LanguageCode": "tr-TR",
-      "VoiceIds": ["Filiz", "Burcu"],
-      "Genders": ["Female", "Female"],
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": ["Yes", "Yes"],
-      "StandardVoice": "No"
-    },
-    {
-      "Language": "Welsh",
-      "LanguageCode": "cy-GB",
-      "VoiceId": "Gwyneth",
-      "Gender": "Female",
-      "GenerativeVoice": "No",
-      "LongFormVoice": "No",
-      "NeuralVoice": "No",
-      "StandardVoice": "Yes"
+      "language": "French",
+      "language_code": "fr-FR",
+      "voices": [
+        {
+          "name": "Celine",
+          "gender": "Female",
+          "generative_voice": false,
+          "long_form_voice": true,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Lea",
+          "gender": "Female",
+          "generative_voice": true,
+          "long_form_voice": true,
+          "neural_voice": true,
+          "standard_voice": true
+        },
+        {
+          "name": "Mathieu",
+          "gender": "Male",
+          "generative_voice": true,
+          "long_form_voice": true,
+          "neural_voice": true,
+          "standard_voice": true
+        }
+      ]
     }
-    //test
-    // {
-    //     "Language": "Arabic",
-    //     "LanguageCode": "arb",
-    //     "VoiceIds": "Zeina",
-    //     "Genders": "Female",
-    //     "GenerativeVoice": "No",
-    //     "LongFormVoice": "No",
-    //     "NeuralVoice": "No",
-    //     "StandardVoice": "Yes"
-    // },
-    // {
-    //     "Language": "Dutch (Belgian)",
-    //     "LanguageCode": "nl-BE",
-    //     "VoiceIds": ["Lisa"],
-    //     "Genders": ["Female"],
-    //     "GenerativeVoice": "No",
-    //     "LongFormVoice": "No",
-    //     "NeuralVoice": "Yes",
-    //     "StandardVoice": "No"
-    // },
-    // {
-    //     "Language": "English (Australian)",
-    //     "LanguageCode": "en-AU",
-    //     "VoiceIds": ["Nicole", "Olivia"],
-    //     "Genders": ["Female", "Female"],
-    //     "GenerativeVoice": "No",
-    //     "LongFormVoice": "No",
-    //     "NeuralVoice": ["Yes", "Yes"],
-    //     "StandardVoice": "No"
-    // },
-  ];
+  ]
 
 }

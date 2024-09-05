@@ -21,6 +21,48 @@ export class Polly1Service {
     this.polly = new AWS.Polly();
   }
 
+  async getBestVoiceForLanguage(langCode: string, preferredGender: 'Female' | 'Male') {
+    const params = {
+      LanguageCode: langCode
+    };
+  
+    try {
+      const response = await this.polly.describeVoices(params).promise();
+      const voices = response.Voices;
+  
+      // Sort based on priority: Neural engine first, then gender preference
+      const bestVoice = voices.sort((a:any, b:any) => {
+        // Prefer Neural engine over Standard
+        const aIsNeural = a.SupportedEngines.includes('neural') ? 1 : 0;
+        const bIsNeural = b.SupportedEngines.includes('neural') ? 1 : 0;
+  
+        if (aIsNeural !== bIsNeural) {
+          return bIsNeural - aIsNeural; // Neural first
+        }
+  
+        // Choose based on gender preference
+        if (a.Gender === preferredGender && b.Gender !== preferredGender) return -1;
+        if (b.Gender === preferredGender && a.Gender !== preferredGender) return 1;
+  
+        // If engines and genders are equal, return first available
+        return 0;
+      })[0]; // Get the first (best) sorted voice
+  
+      console.log(`Best VoiceId: ${bestVoice?.Id}, Engine: ${bestVoice?.SupportedEngines.join(', ')}, Gender: ${bestVoice?.Gender}`);
+      return bestVoice;
+    } catch (error) {
+      console.error("Error fetching voices:", error);
+    }
+  }
+  
+  // // Example usage:
+  // getBestVoiceForLanguage('en-US', 'Female').then(bestVoice => {
+  //   if (bestVoice) {
+  //     this.pollyService.playSpeechWithCallback(bestVoice.Id, bestVoice.SupportedEngines[0]);  // Use the best voiceId and engine
+  //   }
+  // });
+
+  
   playSpeechWithCallback(text: string, voiceId: string = 'Joanna', languageCode: string = 'en-US', callback: () => void) {
     const params = {
       Text: text,
